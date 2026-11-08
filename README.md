@@ -1,44 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GrowthScript
 
-## Getting Started
+Next.js application. The root layout sets the document title to GrowthScript and the description to "AI-powered performance marketing strategist."
 
-First, run the development server:
+## What it does
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `/` renders `src/app/page.tsx`, the default Next.js starter home page.
+- `/login` takes an email and password and calls Supabase Auth `signUp` and `signInWithPassword`. After a successful sign-up or sign-in, the page navigates to `/dashboard`. The repository has no page for that path.
+- `src/lib/supabase.ts` exports a browser Supabase client, which the login page uses, and `createSupabaseServerClient`, which reads and writes auth cookies through `next/headers`.
+- `src/lib/stripe.ts` exports a server-side Stripe client created with `STRIPE_SECRET_KEY`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`@langchain/langgraph` and `@langchain/openai` are dependencies in `package.json`. No file under `src/` imports them.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 15.3 (App Router), React 19, and TypeScript
+- Tailwind CSS 4
+- Supabase (`@supabase/supabase-js`, `@supabase/ssr`)
+- Stripe (`stripe`)
+- LangGraph and OpenAI (`@langchain/langgraph`, `@langchain/openai`)
 
-## Environment
+## Prerequisites
 
-Copy [`.env.example`](.env.example) to `.env.local` and fill in the placeholders before running the app:
+- Node.js 22 (the version [CI](.github/workflows/ci.yml) uses)
+- npm
+- A Supabase project URL and anon key
+- A Stripe secret key
+
+## Setup
+
+From the repository root:
 
 ```bash
 cp .env.example .env.local
+npm install
+npm run dev
 ```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+Fill in the placeholders in `.env.local`. That file stays local because `.gitignore` ignores `.env*`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL for the browser and server clients |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key for the browser and server clients |
+| `STRIPE_SECRET_KEY` | Stripe secret key for the server client in `src/lib/stripe.ts` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`package-lock.json` is gitignored. Install dependencies with `npm install`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Script | Command | Description |
+| --- | --- | --- |
+| `dev` | `npm run dev` | Dev server with Turbopack (`next dev --turbopack`) |
+| `build` | `npm run build` | Production build (`next build`). Set the env vars above first. |
+| `start` | `npm run start` | Serve the production build (`next start`) after `npm run build` |
+| `lint` | `npm run lint` | ESLint through `next lint` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+.
+├── .env.example                  # env var names the app reads
+├── .github/workflows/ci.yml      # npm install, lint, and build
+├── .github/workflows/vercel.yml  # deploy to Vercel on push to main
+├── public/                       # static SVGs
+├── src/app/layout.tsx            # root layout and metadata
+├── src/app/page.tsx              # home page
+├── src/app/globals.css
+├── src/app/login/page.tsx        # email and password auth
+├── src/lib/stripe.ts             # Stripe server client
+├── src/lib/supabase.ts           # Supabase browser and server clients
+├── next.config.ts
+├── package.json
+└── tsconfig.json                 # path alias @/* → ./src/*
+```

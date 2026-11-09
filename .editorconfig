@@ -1,0 +1,17 @@
+# Matches the files already in the repo: 2-space indents, LF, UTF-8.
+# Hand-written TypeScript uses single quotes. JSON keeps double quotes.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{js,jsx,mjs,cjs,ts,tsx}]
+quote_type = single
+
+[*.md]
+trim_trailing_whitespace = false

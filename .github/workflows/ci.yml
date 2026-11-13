@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    name: Install, lint, and build
+    name: Install, lint, test, and build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,6 +28,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Test
+        run: npm test
 
       - name: Build
         run: npm run build

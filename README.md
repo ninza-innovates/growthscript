@@ -81,3 +81,7 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 ├── package.json
 └── tsconfig.json                 # path alias @/* → ./src/*
 ```
+
+## License
+
+Released under the [MIT License](LICENSE). Copyright 2026 Carl Layton.

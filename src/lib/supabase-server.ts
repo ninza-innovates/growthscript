@@ -1,6 +1,10 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { requireEnv } from './env';
+import {
+  applySupabaseCookies,
+  type SupabaseAuthCookie,
+} from './supabase-cookies';
 
 /**
  * Server Supabase client for the current request.
@@ -24,21 +28,8 @@ export const createSupabaseServerClient = async () => {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(
-        cookiesToSet: {
-          name: string;
-          value: string;
-          options: CookieOptions;
-        }[],
-      ) {
-        try {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
-          }
-        } catch {
-          // Server Components cannot write cookies. Ignore the failure here;
-          // a future middleware refresh would persist the updated session.
-        }
+      setAll(cookiesToSet: SupabaseAuthCookie[]) {
+        applySupabaseCookies(cookieStore, cookiesToSet);
       },
     },
   });

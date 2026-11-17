@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "tailwindcss/preflight";
+/* Preflight ships with the import above. Importing it again emits an unlayered
+   copy, which overrides utility padding, borders, and button backgrounds. */
 @tailwind utilities;
 
 :root {

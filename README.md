@@ -5,7 +5,7 @@ Next.js application. The root layout sets the document title to GrowthScript and
 ## What it does
 
 - `/` renders `src/app/page.tsx`, the default Next.js starter home page.
-- `/login` takes an email and password and calls Supabase Auth `signUp` and `signInWithPassword`. After a successful sign-up or sign-in, the page navigates to `/dashboard`.
+- `/login` takes an email and password and calls Supabase Auth `signUp` and `signInWithPassword`. Blank fields, auth errors, and thrown client failures stay on the form. A sign-up with no session asks the user to confirm their email, and an empty identities list says the account already exists. After a session is created, the page navigates to `/dashboard`.
 - `/dashboard` reads the current Supabase session in the browser. It shows the signed-in email and a sign-out button that returns to `/login`. A user with no email address still counts as signed in. With no session, the page links back to `/login`.
 - `src/lib/supabase.ts` exports a browser Supabase client, which the login page uses.
 - `src/lib/supabase-server.ts` exports async `createSupabaseServerClient`, which reads and writes auth cookies through `next/headers`. It is a separate module so the login page does not import `next/headers`. `cookies()` is async in Next.js 15. Cookie writes go through `src/lib/supabase-cookies.ts`, which ignores the Next.js error thrown when a Server Component tries to set cookies and rethrows any other write failure.
@@ -59,7 +59,7 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 | `build` | `npm run build` | Production build (`next build`). Set the env vars above first. |
 | `start` | `npm run start` | Serve the production build (`next start`) after `npm run build` |
 | `lint` | `npm run lint` | ESLint through `next lint` |
-| `test` | `npm test` | Unit tests for required env checks, Supabase cookie writes, and the dashboard session view (`node --test` on Node 22) |
+| `test` | `npm test` | Unit tests for required env checks, Supabase cookie writes, the dashboard session view, and login auth outcomes (`node --test` on Node 22) |
 
 ## Project structure
 
@@ -74,6 +74,8 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 ├── src/app/globals.css
 ├── src/app/login/page.tsx        # email and password auth
 ├── src/app/dashboard/page.tsx    # signed-in email, or a link to sign in
+├── src/lib/auth-form.ts          # login validation and auth outcomes
+├── src/lib/auth-form.test.ts
 ├── src/lib/dashboard-session.ts  # maps a Supabase user to that view
 ├── src/lib/dashboard-session.test.ts
 ├── src/lib/env.ts                # checks for required env vars

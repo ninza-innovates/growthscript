@@ -9,18 +9,29 @@ export type AuthAttempt =
 const UNEXPECTED_MESSAGE = 'Something went wrong. Try again.';
 
 /**
+ * One address: a local part, one `@`, and a domain with a dot.
+ * The login form sets `noValidate`, so this replaces the browser's `type="email"` check.
+ */
+const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
  * Client-side check before calling Supabase Auth.
  *
  * Returns a message to show on the form, or `null` when both fields can be sent.
- * Email is judged after trimming. A password of only whitespace is empty; other
- * passwords are sent unchanged, including leading or trailing spaces.
+ * Email is judged after trimming and must be a single address (`local@domain.tld`).
+ * A password of only whitespace is empty; other passwords are sent unchanged,
+ * including leading or trailing spaces.
  */
 export function validateAuthCredentials(
   email: string,
   password: string,
 ): string | null {
-  if (email.trim() === '') {
+  const trimmedEmail = email.trim();
+  if (trimmedEmail === '') {
     return 'Enter an email address.';
+  }
+  if (!EMAIL_ADDRESS.test(trimmedEmail)) {
+    return 'Enter a valid email address.';
   }
   if (password.trim() === '') {
     return 'Enter a password.';

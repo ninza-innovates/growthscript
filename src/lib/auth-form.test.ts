@@ -32,6 +32,37 @@ describe('validateAuthCredentials', () => {
       'Enter a password.',
     );
   });
+
+  it('accepts a tagged address and surrounding whitespace', () => {
+    assert.equal(
+      validateAuthCredentials('  ada+tag@mail.example.co.uk \n', 'secret'),
+      null,
+    );
+  });
+
+  it('rejects an email that is not a single address', () => {
+    for (const email of [
+      'ada',
+      'ada@',
+      '@example.com',
+      'ada@example',
+      'ada @example.com',
+      'ada@example.com extra',
+      'a@b@c.com',
+    ]) {
+      assert.equal(
+        validateAuthCredentials(email, 'secret'),
+        'Enter a valid email address.',
+      );
+    }
+  });
+
+  it('reports an invalid email before a blank password', () => {
+    assert.equal(
+      validateAuthCredentials('not-an-email', '   '),
+      'Enter a valid email address.',
+    );
+  });
 });
 
 describe('authAttemptFromResult', () => {

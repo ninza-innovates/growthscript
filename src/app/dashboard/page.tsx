@@ -8,6 +8,10 @@ import {
   dashboardSessionFromUser,
   type DashboardSession,
 } from '@/lib/dashboard-session';
+import {
+  signOutAttemptFromResult,
+  signOutAttemptFromThrown,
+} from '@/lib/sign-out';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -40,15 +44,24 @@ export default function Dashboard() {
   }, []);
 
   const handleSignOut = async () => {
+    if (signingOut) return;
+
     setActionError(null);
     setSigningOut(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setActionError(error.message);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      const attempt = signOutAttemptFromResult(error);
+      if (!attempt.ok) {
+        setActionError(attempt.message);
+        setSigningOut(false);
+        return;
+      }
+      router.push('/login');
+    } catch (caught) {
+      setActionError(signOutAttemptFromThrown(caught).message);
       setSigningOut(false);
-      return;
     }
-    router.push('/login');
   };
 
   return (
@@ -72,7 +85,9 @@ export default function Dashboard() {
               )}
             </p>
             {actionError && (
-              <p className="text-red-500 text-sm mb-4">{actionError}</p>
+              <p role="alert" className="text-red-500 text-sm mb-4">
+                {actionError}
+              </p>
             )}
             <button
               type="button"

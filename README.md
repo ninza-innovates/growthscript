@@ -73,7 +73,7 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 ├── src/app/globals.css
 ├── src/app/login/page.tsx        # email and password auth
 ├── src/app/dashboard/page.tsx    # signed-in email, or a link to sign in
-├── src/lib/auth-form.ts          # login validation and auth outcomes
+├── src/lib/auth-form.ts          # login validation and auth outcomes; email confirmation is a status
 ├── src/lib/auth-form.test.ts
 ├── src/lib/dashboard-session.ts  # maps a Supabase user to that view
 ├── src/lib/dashboard-session.test.ts

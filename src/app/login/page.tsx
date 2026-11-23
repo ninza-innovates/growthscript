@@ -8,12 +8,16 @@ import {
   authAttemptFromThrown,
   validateAuthCredentials,
   type AuthAction,
+  type AuthTone,
 } from '@/lib/auth-form';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    tone: AuthTone;
+    message: string;
+  } | null>(null);
   const [submitting, setSubmitting] = useState<AuthAction | null>(null);
   const router = useRouter();
 
@@ -22,11 +26,11 @@ export default function Login() {
 
     const validationMessage = validateAuthCredentials(email, password);
     if (validationMessage) {
-      setError(validationMessage);
+      setFeedback({ tone: 'error', message: validationMessage });
       return;
     }
 
-    setError(null);
+    setFeedback(null);
     setSubmitting(action);
 
     try {
@@ -42,13 +46,13 @@ export default function Login() {
         identities: data.user?.identities,
       });
       if (!attempt.ok) {
-        setError(attempt.message);
+        setFeedback({ tone: attempt.tone, message: attempt.message });
         setSubmitting(null);
         return;
       }
       router.push('/dashboard');
     } catch (caught) {
-      setError(authAttemptFromThrown(caught).message);
+      setFeedback(authAttemptFromThrown(caught));
       setSubmitting(null);
     }
   };
@@ -84,9 +88,14 @@ export default function Login() {
             disabled={submitting !== null}
             className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
           />
-          {error && (
-            <p role="alert" className="text-red-500 text-sm mb-4">
-              {error}
+          {feedback && (
+            <p
+              role={feedback.tone === 'status' ? 'status' : 'alert'}
+              className={`text-sm mb-4 ${
+                feedback.tone === 'status' ? 'text-blue-700' : 'text-red-500'
+              }`}
+            >
+              {feedback.message}
             </p>
           )}
           <button

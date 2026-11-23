@@ -73,7 +73,7 @@ describe('authAttemptFromResult', () => {
         error: { message: '  Invalid login credentials \n' },
         session: null,
       }),
-      { ok: false, message: 'Invalid login credentials' },
+      { ok: false, tone: 'error', message: 'Invalid login credentials' },
     );
   });
 
@@ -84,7 +84,11 @@ describe('authAttemptFromResult', () => {
         error: { message: '   ' },
         session: null,
       }),
-      { ok: false, message: 'Something went wrong. Try again.' },
+      {
+        ok: false,
+        tone: 'error',
+        message: 'Something went wrong. Try again.',
+      },
     );
   });
 
@@ -108,7 +112,7 @@ describe('authAttemptFromResult', () => {
     );
   });
 
-  it('asks for email confirmation when sign-up returns no session', () => {
+  it('asks for email confirmation as a status when sign-up returns no session', () => {
     assert.deepEqual(
       authAttemptFromResult({
         action: 'sign-up',
@@ -118,6 +122,7 @@ describe('authAttemptFromResult', () => {
       }),
       {
         ok: false,
+        tone: 'status',
         message: 'Check your email to confirm your account, then sign in.',
       },
     );
@@ -133,6 +138,7 @@ describe('authAttemptFromResult', () => {
       }),
       {
         ok: false,
+        tone: 'error',
         message: 'An account with this email already exists. Sign in instead.',
       },
     );
@@ -145,7 +151,11 @@ describe('authAttemptFromResult', () => {
         error: null,
         session: null,
       }),
-      { ok: false, message: 'Sign-in did not start a session. Try again.' },
+      {
+        ok: false,
+        tone: 'error',
+        message: 'Sign-in did not start a session. Try again.',
+      },
     );
   });
 });
@@ -154,6 +164,7 @@ describe('authAttemptFromThrown', () => {
   it('uses a thrown Error message', () => {
     assert.deepEqual(authAttemptFromThrown(new Error(' Network down ')), {
       ok: false,
+      tone: 'error',
       message: 'Network down',
     });
   });
@@ -161,10 +172,12 @@ describe('authAttemptFromThrown', () => {
   it('uses fallback copy for a blank or non-Error throw', () => {
     assert.deepEqual(authAttemptFromThrown(new Error('  ')), {
       ok: false,
+      tone: 'error',
       message: 'Something went wrong. Try again.',
     });
     assert.deepEqual(authAttemptFromThrown('nope'), {
       ok: false,
+      tone: 'error',
       message: 'Something went wrong. Try again.',
     });
   });

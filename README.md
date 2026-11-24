@@ -4,7 +4,7 @@ Next.js application. The root layout sets the document title to GrowthScript and
 
 ## What it does
 
-- `/` renders `src/app/page.tsx`, the default Next.js starter home page.
+- `/` renders `src/app/page.tsx`, a short landing page with a link to sign in.
 
 - `src/lib/supabase.ts` exports a browser Supabase client, which the login page uses.
 - `src/lib/supabase-server.ts` exports async `createSupabaseServerClient`, which reads and writes auth cookies through `next/headers`. It is a separate module so the login page does not import `next/headers`. `cookies()` is async in Next.js 15. Cookie writes go through `src/lib/supabase-cookies.ts`, which ignores the Next.js error thrown when a Server Component tries to set cookies and rethrows any other write failure.

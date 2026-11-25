@@ -15,7 +15,7 @@ Next.js application. The root layout sets the document title to GrowthScript and
 
 ## Tech stack
 
-- Next.js 15.3 (App Router), React 19, and TypeScript
+- Next.js 15.5 (App Router), React 19, and TypeScript
 - Tailwind CSS 4
 - Supabase (`@supabase/supabase-js`, `@supabase/ssr`)
 - Stripe (`stripe`)

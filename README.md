@@ -58,7 +58,7 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 | `build` | `npm run build` | Production build (`next build`). Set the env vars above first. |
 | `start` | `npm run start` | Serve the production build (`next start`) after `npm run build` |
 | `lint` | `npm run lint` | ESLint through `next lint` |
-| `test` | `npm test` | Unit tests for required env checks, Supabase cookie writes, the dashboard session view, login auth outcomes, and sign-out outcomes (`node --test` on Node 22) |
+| `test` | `npm test` | Unit tests for required env checks, Supabase cookie writes, the dashboard session view (including a failed session check), login auth outcomes, and sign-out outcomes (`node --test` on Node 22) |
 
 ## Project structure
 
@@ -72,10 +72,10 @@ Fill in the placeholders in `.env.local`. That file stays local because `.gitign
 ├── src/app/page.tsx              # home page
 ├── src/app/globals.css
 ├── src/app/login/page.tsx        # email and password auth
-├── src/app/dashboard/page.tsx    # signed-in email, or a link to sign in
+├── src/app/dashboard/page.tsx    # signed-in email, a failed session check, or a link to sign in
 ├── src/lib/auth-form.ts          # login validation and auth outcomes; email confirmation is a status
 ├── src/lib/auth-form.test.ts
-├── src/lib/dashboard-session.ts  # maps a Supabase user to that view
+├── src/lib/dashboard-session.ts  # maps a Supabase user or auth error to that view
 ├── src/lib/dashboard-session.test.ts
 ├── src/lib/sign-out.ts           # maps sign-out results to the dashboard
 ├── src/lib/sign-out.test.ts

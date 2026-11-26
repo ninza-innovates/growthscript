@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import {
-  dashboardSessionFromUser,
+  dashboardSessionFromAuth,
+  dashboardSessionFromThrown,
   type DashboardSession,
 } from '@/lib/dashboard-session';
 import {
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const [session, setSession] = useState<DashboardSession | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [checkId, setCheckId] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,13 +29,9 @@ export default function Dashboard() {
       try {
         const { data, error } = await supabase.auth.getUser();
         if (cancelled) return;
-        if (error || !data.user) {
-          setSession({ status: 'signed-out' });
-          return;
-        }
-        setSession(dashboardSessionFromUser(data.user));
-      } catch {
-        if (!cancelled) setSession({ status: 'signed-out' });
+        setSession(dashboardSessionFromAuth({ user: data.user, error }));
+      } catch (caught) {
+        if (!cancelled) setSession(dashboardSessionFromThrown(caught));
       }
     }
 
@@ -41,7 +39,12 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [checkId]);
+
+  const retrySessionCheck = () => {
+    setSession(null);
+    setCheckId((id) => id + 1);
+  };
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -97,6 +100,25 @@ export default function Dashboard() {
             >
               {signingOut ? 'Signing out...' : 'Sign Out'}
             </button>
+          </>
+        ) : session.status === 'unavailable' ? (
+          <>
+            <p role="alert" className="text-red-500 text-sm mb-4 text-center">
+              {session.message}
+            </p>
+            <button
+              type="button"
+              onClick={retrySessionCheck}
+              className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition"
+            >
+              Try again
+            </button>
+            <Link
+              href="/login"
+              className="block w-full bg-gray-500 text-white p-3 rounded-lg mt-2 hover:bg-gray-600 transition text-center"
+            >
+              Sign In
+            </Link>
           </>
         ) : (
           <>

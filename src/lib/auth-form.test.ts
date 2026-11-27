@@ -9,33 +9,40 @@ import {
 describe('validateAuthCredentials', () => {
   it('accepts an email and a password', () => {
     assert.equal(
-      validateAuthCredentials('ada@example.com', 'correct horse'),
+      validateAuthCredentials('ada@example.com', 'correct horse', 'sign-in'),
       null,
     );
   });
 
   it('rejects a missing or blank email before the password', () => {
-    assert.equal(validateAuthCredentials('', 'secret'), 'Enter an email address.');
     assert.equal(
-      validateAuthCredentials('  \n', 'secret'),
+      validateAuthCredentials('', 'secret', 'sign-in'),
+      'Enter an email address.',
+    );
+    assert.equal(
+      validateAuthCredentials('  \n', 'secret', 'sign-up'),
       'Enter an email address.',
     );
   });
 
   it('rejects a missing or blank password', () => {
     assert.equal(
-      validateAuthCredentials('ada@example.com', ''),
+      validateAuthCredentials('ada@example.com', '', 'sign-in'),
       'Enter a password.',
     );
     assert.equal(
-      validateAuthCredentials('ada@example.com', ' \t'),
+      validateAuthCredentials('ada@example.com', ' \t', 'sign-up'),
       'Enter a password.',
     );
   });
 
   it('accepts a tagged address and surrounding whitespace', () => {
     assert.equal(
-      validateAuthCredentials('  ada+tag@mail.example.co.uk \n', 'secret'),
+      validateAuthCredentials(
+        '  ada+tag@mail.example.co.uk \n',
+        'secret',
+        'sign-in',
+      ),
       null,
     );
   });
@@ -51,16 +58,88 @@ describe('validateAuthCredentials', () => {
       'a@b@c.com',
     ]) {
       assert.equal(
-        validateAuthCredentials(email, 'secret'),
+        validateAuthCredentials(email, 'secret', 'sign-up'),
         'Enter a valid email address.',
       );
     }
   });
 
-  it('reports an invalid email before a blank password', () => {
+  it('reports an invalid email before a blank or short password', () => {
     assert.equal(
-      validateAuthCredentials('not-an-email', '   '),
+      validateAuthCredentials('not-an-email', '   ', 'sign-in'),
       'Enter a valid email address.',
+    );
+    assert.equal(
+      validateAuthCredentials('not-an-email', 'abc', 'sign-up'),
+      'Enter a valid email address.',
+    );
+  });
+
+  it('rejects a sign-up password shorter than Supabase Auth allows', () => {
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'abcde', 'sign-up'),
+      'Password must be at least 6 characters.',
+    );
+    // Three emoji are three characters; each is a surrogate pair.
+    assert.equal(
+      validateAuthCredentials('ada@example.com', '😀😀😀', 'sign-up'),
+      'Password must be at least 6 characters.',
+    );
+    // Spaces are sent as typed, so they count toward the length.
+    assert.equal(
+      validateAuthCredentials('ada@example.com', '  abc', 'sign-up'),
+      'Password must be at least 6 characters.',
+    );
+  });
+
+  it('rejects a sign-up password longer than bcrypt will store', () => {
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'a'.repeat(73), 'sign-up'),
+      'Password must be at most 72 characters.',
+    );
+    // "é" is one character and two UTF-8 bytes, so 37 of them are 74 bytes.
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'é'.repeat(37), 'sign-up'),
+      'Password must be at most 72 characters.',
+    );
+  });
+
+  it('accepts a sign-up password at either length limit', () => {
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'abcdef', 'sign-up'),
+      null,
+    );
+    assert.equal(
+      validateAuthCredentials('ada@example.com', '😀😀😀😀😀😀', 'sign-up'),
+      null,
+    );
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'a'.repeat(72), 'sign-up'),
+      null,
+    );
+    // 36 "é" are 72 bytes.
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'é'.repeat(36), 'sign-up'),
+      null,
+    );
+    assert.equal(
+      validateAuthCredentials('ada@example.com', '  abcd', 'sign-up'),
+      null,
+    );
+  });
+
+  it('does not apply sign-up length limits when signing in', () => {
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'abcde', 'sign-in'),
+      null,
+    );
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'a'.repeat(80), 'sign-in'),
+      null,
+    );
+    assert.equal(
+      validateAuthCredentials('ada@example.com', 'é'.repeat(40), 'sign-in'),
+      null,
     );
   });
 });

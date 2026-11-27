@@ -24,7 +24,7 @@ export default function Login() {
   const submit = async (action: AuthAction) => {
     if (submitting !== null) return;
 
-    const validationMessage = validateAuthCredentials(email, password);
+    const validationMessage = validateAuthCredentials(email, password, action);
     if (validationMessage) {
       setFeedback({ tone: 'error', message: validationMessage });
       return;

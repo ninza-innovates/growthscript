@@ -56,12 +56,48 @@ describe('validateAuthCredentials', () => {
       'ada @example.com',
       'ada@example.com extra',
       'a@b@c.com',
+      'ada@gmail..com',
+      'ada@.gmail.com',
+      'ada@gmail.com.',
+      'ada..lovelace@example.com',
+      '.ada@example.com',
+      'ada.@example.com',
+      'ada@-example.com',
+      'ada@example-.com',
     ]) {
       assert.equal(
         validateAuthCredentials(email, 'secret', 'sign-up'),
         'Enter a valid email address.',
       );
     }
+  });
+
+  it('accepts a hyphenated domain', () => {
+    assert.equal(
+      validateAuthCredentials('ada@my-mail.example.com', 'secret', 'sign-in'),
+      null,
+    );
+  });
+
+  it('rejects an email longer than Supabase Auth allows', () => {
+    const atLimit = `${'a'.repeat(243)}@example.com`;
+    assert.equal(Buffer.byteLength(atLimit), 255);
+    assert.equal(validateAuthCredentials(atLimit, 'secret', 'sign-in'), null);
+
+    const tooManyCharacters = `${'a'.repeat(244)}@example.com`;
+    assert.equal(
+      validateAuthCredentials(tooManyCharacters, 'secret', 'sign-up'),
+      'Email address is too long.',
+    );
+    // "é" is one character and two UTF-8 bytes, so this is under 255
+    // characters and over 255 bytes.
+    const tooManyBytes = `${'é'.repeat(200)}@x.co`;
+    assert.ok(tooManyBytes.length < 255);
+    assert.ok(Buffer.byteLength(tooManyBytes) > 255);
+    assert.equal(
+      validateAuthCredentials(tooManyBytes, 'secret', 'sign-in'),
+      'Email address is too long.',
+    );
   });
 
   it('reports an invalid email before a blank or short password', () => {

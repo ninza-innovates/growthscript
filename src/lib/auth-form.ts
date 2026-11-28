@@ -15,10 +15,23 @@ export type AuthAttempt =
 const UNEXPECTED_MESSAGE = 'Something went wrong. Try again.';
 
 /**
- * One address: a local part, one `@`, and a domain with a dot.
+ * Longest email Supabase Auth will accept, in UTF-8 bytes (`len(email) > 255` in Go).
+ */
+const MAX_EMAIL_BYTES = 255;
+
+/**
+ * Dot-separated atoms, so an empty label (`ada..lovelace`) is rejected.
  * The login form sets `noValidate`, so this replaces the browser's `type="email"` check.
  */
-const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_LOCAL =
+  /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+
+/**
+ * At least one dot, so `user@localhost` stays on the form. Each label is
+ * 1–63 characters and does not start or end with a hyphen.
+ */
+const EMAIL_DOMAIN =
+  /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
 
 /**
  * Shortest sign-up password Supabase Auth will accept.
@@ -38,7 +51,8 @@ const MAX_SIGN_UP_PASSWORD_BYTES = 72;
  * Client-side check before calling Supabase Auth.
  *
  * Returns a message to show on the form, or `null` when both fields can be sent.
- * Email is judged after trimming and must be a single address (`local@domain.tld`).
+ * Email is judged after trimming and must be a single address (`local@domain.tld`)
+ * of at most 255 UTF-8 bytes, which is what Supabase Auth will accept.
  * A password of only whitespace is empty; other passwords are sent unchanged,
  * including leading or trailing spaces.
  *
@@ -56,14 +70,36 @@ export function validateAuthCredentials(
   if (trimmedEmail === '') {
     return 'Enter an email address.';
   }
-  if (!EMAIL_ADDRESS.test(trimmedEmail)) {
-    return 'Enter a valid email address.';
+  const emailError = emailMessage(trimmedEmail);
+  if (emailError) {
+    return emailError;
   }
   if (password.trim() === '') {
     return 'Enter a password.';
   }
   if (action === 'sign-up') {
     return signUpPasswordMessage(password);
+  }
+  return null;
+}
+
+/**
+ * Format or length error for an email, or `null` when Supabase Auth's
+ * format check and 255-byte limit both allow it.
+ */
+function emailMessage(email: string): string | null {
+  if (utf8ByteLength(email) > MAX_EMAIL_BYTES) {
+    return 'Email address is too long.';
+  }
+  const at = email.indexOf('@');
+  if (at <= 0 || at !== email.lastIndexOf('@')) {
+    return 'Enter a valid email address.';
+  }
+  if (
+    !EMAIL_LOCAL.test(email.slice(0, at)) ||
+    !EMAIL_DOMAIN.test(email.slice(at + 1))
+  ) {
+    return 'Enter a valid email address.';
   }
   return null;
 }
